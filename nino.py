@@ -140,6 +140,7 @@ class Editor:
     def load_file(self, filename: str):
         with open(filename, "r", encoding="utf-8") as handle:
             contents = handle.read().splitlines()
+        # Ensure empty file remains a single empty line in the buffer.
         self.lines = contents if contents else [""]
         self.filename = filename
         self.cx = 0
