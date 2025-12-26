@@ -362,20 +362,6 @@ def main(stdscr, initial_filename: str | None = None):
         except RuntimeError as exc:
             if str(exc) == "SAVE":
                 handle_save(stdscr, ed)
-                if ed.filename:
-                    try:
-                        ed.save_file()
-                        ed.set_status(f"Wrote {ed.filename}")
-                    except OSError as err:
-                        ed.set_status(f"Save failed: {err}")
-                else:
-                    name = prompt_input(stdscr, ed, "Save as: ")
-                    if name:
-                        try:
-                            ed.save_file(name)
-                            ed.set_status(f"Wrote {name}")
-                        except OSError as err:
-                            ed.set_status(f"Save failed: {err}")
             elif str(exc) == "OPEN":
                 name = prompt_input(stdscr, ed, "Open: ")
                 if name:
