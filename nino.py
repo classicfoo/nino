@@ -356,6 +356,7 @@ def main(stdscr, initial_filename: str | None = None):
         if ch == CTRL_Q and ed.dirty:
             ed.quit_confirm = True
             ed.set_prompt("Save modified buffer?  (Y)es / (N)o / (C)ancel")
+            refresh_screen(stdscr, ed)
             continue
         try:
             process_key(stdscr, ed, ch)
