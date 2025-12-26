@@ -22,6 +22,8 @@ class Editor:
     status_msg: str = "Ctrl+Q quit | (save later)"
     status_time: float = field(default_factory=time.time)
     prompt_msg: str = ""
+    prompt_active: bool = False
+    clock_str: str = field(default_factory=lambda: time.strftime("%H:%M:%S"))
 
     def set_status(self, msg: str):
         self.status_msg = msg
@@ -161,8 +163,10 @@ class Editor:
 def draw_status(stdscr, ed: Editor, h: int, w: int):
     if h < 2:
         return
+    if not ed.prompt_active:
+        ed.clock_str = time.strftime("%H:%M:%S")
     left = f" nino  {'(UNSAVED)' if ed.dirty else '(SAVED)'} "
-    right = f"Ln {ed.cy+1}, Col {ed.cx+1}  {time.strftime('%H:%M:%S')}"
+    right = f"Ln {ed.cy+1}, Col {ed.cx+1}  {ed.clock_str}"
     bar = left[: max(0, w - 1)].ljust(max(0, w - 1))
     r = right[: max(0, w - 1)]
     if len(r) < w - 1:
@@ -259,6 +263,7 @@ def process_key(stdscr, ed: Editor, ch: int):
 
 def prompt_input(stdscr, ed: Editor, prompt: str) -> str | None:
     ed.set_prompt(prompt)
+    ed.prompt_active = True
     buffer: list[str] = []
     while True:
         refresh_screen(stdscr, ed)
@@ -266,9 +271,11 @@ def prompt_input(stdscr, ed: Editor, prompt: str) -> str | None:
         if ch in (10, 13):
             text = "".join(buffer).strip()
             ed.set_prompt("")
+            ed.prompt_active = False
             return text if text else None
         if ch in (27,):  # ESC
             ed.set_prompt("")
+            ed.prompt_active = False
             return None
         if ch in (curses.KEY_BACKSPACE, 127, 8):
             if buffer:
