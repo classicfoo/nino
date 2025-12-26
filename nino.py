@@ -190,6 +190,9 @@ def draw_prompt(stdscr, ed: Editor, h: int, w: int):
         return
     msg = ed.prompt_msg[: max(0, w - 1)]
     stdscr.addstr(h - 1, 0, msg.ljust(max(0, w - 1)))
+    if ed.prompt_msg and w > 1:
+        caret_x = min(len(msg), w - 2)
+        stdscr.addstr(h - 1, caret_x, "█", curses.A_BOLD | curses.A_REVERSE)
 
 
 def refresh_screen(stdscr, ed: Editor):
