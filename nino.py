@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import curses
+import sys
 import time
 from dataclasses import dataclass, field
 
@@ -315,7 +316,7 @@ def handle_save(stdscr, ed: Editor) -> bool:
     return False
 
 
-def main(stdscr):
+def main(stdscr, initial_filename: str | None = None):
     curses.curs_set(1)
     stdscr.keypad(True)
     curses.noecho()
@@ -325,6 +326,12 @@ def main(stdscr):
 
     ed = Editor()
     ed.set_status("Ctrl+Q quit | Ctrl+S save | Ctrl+O open | arrows move | type to edit")
+    if initial_filename:
+        try:
+            ed.load_file(initial_filename)
+            ed.set_status(f"Opened {initial_filename}")
+        except OSError as err:
+            ed.set_status(f"Open failed: {err}")
 
     while True:
         refresh_screen(stdscr, ed)
@@ -382,4 +389,5 @@ def main(stdscr):
 
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    filename_arg = sys.argv[1] if len(sys.argv) > 1 else None
+    curses.wrapper(main, filename_arg)
