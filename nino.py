@@ -52,7 +52,7 @@ class Editor:
     def scroll_into_view(self, screen_h: int, screen_w: int):
         # Text area excludes last line (status bar)
         text_h = max(1, screen_h - 1)
-        text_w = max(1, screen_w)
+        text_w = max(1, screen_w - 1)
 
         # Vertical scroll
         if self.cy < self.rowoff:
