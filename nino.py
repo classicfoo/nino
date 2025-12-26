@@ -19,6 +19,7 @@ class Editor:
     coloff: int = 0  # horizontal scroll offset
 
     dirty: bool = False
+    quit_confirm: bool = False
     status_msg: str = "Ctrl+Q quit | (save later)"
     status_time: float = field(default_factory=time.time)
     prompt_msg: str = ""
@@ -278,6 +279,28 @@ def prompt_input(stdscr, ed: Editor, prompt: str) -> str | None:
         ed.set_prompt(prompt + "".join(buffer))
 
 
+def handle_save(stdscr, ed: Editor) -> bool:
+    if ed.filename:
+        try:
+            ed.save_file()
+            ed.set_status(f"Wrote {ed.filename}")
+            return True
+        except OSError as err:
+            ed.set_status(f"Save failed: {err}")
+            return False
+    name = prompt_input(stdscr, ed, "Save as: ")
+    if name:
+        try:
+            ed.save_file(name)
+            ed.set_status(f"Wrote {name}")
+            return True
+        except OSError as err:
+            ed.set_status(f"Save failed: {err}")
+            return False
+    ed.set_status("Save cancelled")
+    return False
+
+
 def main(stdscr):
     curses.curs_set(1)
     stdscr.keypad(True)
@@ -294,26 +317,30 @@ def main(stdscr):
         ch = stdscr.getch()
         if ch == -1:
             continue
+        if ed.quit_confirm:
+            if ch in (ord("y"), ord("Y")):
+                ed.set_prompt("")
+                ed.quit_confirm = False
+                if handle_save(stdscr, ed):
+                    break
+                continue
+            if ch in (ord("n"), ord("N"), CTRL_Q):
+                break
+            if ch in (ord("c"), ord("C")):
+                ed.set_prompt("")
+                ed.quit_confirm = False
+                continue
+            ed.set_prompt("")
+            ed.quit_confirm = False
+        if ch == CTRL_Q and ed.dirty:
+            ed.quit_confirm = True
+            ed.set_prompt("Save modified buffer?  (Y)es / (N)o / (C)ancel")
+            continue
         try:
             process_key(stdscr, ed, ch)
         except RuntimeError as exc:
             if str(exc) == "SAVE":
-                if ed.filename:
-                    try:
-                        ed.save_file()
-                        ed.set_status(f"Wrote {ed.filename}")
-                    except OSError as err:
-                        ed.set_status(f"Save failed: {err}")
-                else:
-                    name = prompt_input(stdscr, ed, "Save as: ")
-                    if name:
-                        try:
-                            ed.save_file(name)
-                            ed.set_status(f"Wrote {name}")
-                        except OSError as err:
-                            ed.set_status(f"Save failed: {err}")
-                    else:
-                        ed.set_status("Save cancelled")
+                handle_save(stdscr, ed)
             elif str(exc) == "OPEN":
                 name = prompt_input(stdscr, ed, "Open: ")
                 if name:
