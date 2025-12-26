@@ -163,7 +163,12 @@ class Editor:
 def draw_status(stdscr, ed: Editor, h: int, w: int):
     if h < 2:
         return
-    left = f" nino  {'(UNSAVED)' if ed.dirty else '(SAVED)'} "
+    if ed.filename is None:
+        left = " nino  (NO FILE) "
+    elif ed.dirty:
+        left = " nino  (UNSAVED) "
+    else:
+        left = " nino  (SAVED) "
     right = f"Ln {ed.cy+1}, Col {ed.cx+1}  {time.strftime('%H:%M:%S')}"
     bar = left[: max(0, w - 1)].ljust(max(0, w - 1))
     r = right[: max(0, w - 1)]
