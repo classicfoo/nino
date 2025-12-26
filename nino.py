@@ -182,13 +182,13 @@ def draw_status(stdscr, ed: Editor, h: int, w: int):
 
 
 def draw_message(stdscr, ed: Editor, h: int, w: int):
-    if h < 2:
+    if h < 2 or ed.prompt_msg:
         return
     # Show status message for ~5 seconds
     if time.time() - ed.status_time > 5:
         return
     msg = ed.status_msg[: max(0, w - 1)]
-    stdscr.addstr(h - 2, 0, msg.ljust(max(0, w - 1)), curses.A_REVERSE)
+    stdscr.addstr(h - 1, 0, msg.ljust(max(0, w - 1)), curses.A_REVERSE)
 
 
 def draw_prompt(stdscr, ed: Editor, h: int, w: int):
