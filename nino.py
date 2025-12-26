@@ -258,6 +258,7 @@ def process_key(stdscr, ed: Editor, ch: int):
 
 
 def prompt_input(stdscr, ed: Editor, prompt: str) -> str | None:
+    prev_status = ed.status_msg
     ed.set_prompt(prompt)
     buffer: list[str] = []
     while True:
@@ -266,9 +267,13 @@ def prompt_input(stdscr, ed: Editor, prompt: str) -> str | None:
         if ch in (10, 13):
             text = "".join(buffer).strip()
             ed.set_prompt("")
-            return text if text else None
+            if text:
+                return text
+            ed.set_status(prev_status)
+            return None
         if ch in (27,):  # ESC
             ed.set_prompt("")
+            ed.set_status(prev_status)
             return None
         if ch in (curses.KEY_BACKSPACE, 127, 8):
             if buffer:
@@ -312,8 +317,6 @@ def main(stdscr):
                             ed.set_status(f"Wrote {name}")
                         except OSError as err:
                             ed.set_status(f"Save failed: {err}")
-                    else:
-                        ed.set_status("Save cancelled")
             elif str(exc) == "OPEN":
                 name = prompt_input(stdscr, ed, "Open: ")
                 if name:
@@ -322,8 +325,6 @@ def main(stdscr):
                         ed.set_status(f"Opened {name}")
                     except OSError as err:
                         ed.set_status(f"Open failed: {err}")
-                else:
-                    ed.set_status("Open cancelled")
         except SystemExit:
             break
 
